@@ -1,0 +1,22 @@
+Aim:
+----------
+To develop a console application that implements in-memory database using the concepts of OOP, templates and design patterns. The task requires only to 
+check an ability to manage different objects, establish the relations between them without using multithreading, synchronization and concurrent containers.
+Before running the application you need to add folder paths for Boost library. The date-time library within Boost that we will be using need to be compiled.
+
+The program contains an abstract class IStaffMember. The given interface is implemented by Employee, Manager, Sales classes whose instances are intended to
+be the real objects. The store class holds the list of created objects.
+Primarily each of them differs from each other by salary calculating. The salary estimate depends on a work position. The salary increases annually.
+
+The rules are the following:
+Employee - 3% annually but no more than 30 % of a base rate
+Manager - 5% annually but no more than 40 % of a base rate (+0,5% of direct subordinates)
+Sales - 1% annually but no more than 35 % of a base rate (+0,3% of all subordinates)
+
+Decision:
+----------
+Abstract factory has some disadvantages because of high level of abstractions. Also it is possible to use Factory method. 
+A potential disadvantage of Factory methods is that clients might have to sub-class the creator class just to create a particular concrete product object.
+I decided to not create for all of them the creator classes. Just use one auxiliary class with templated creation methods suitable for each cases.
+It allows to control the process of creation in one place. Also it is possible to inherit from a template base class. 
+Also I provide herein other participants of the process like SCalculator and Storage classes. Just not to confuse the roles. The Storage class simulates a real database.
