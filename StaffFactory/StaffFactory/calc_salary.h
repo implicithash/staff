@@ -8,6 +8,7 @@
 class SCalculator final
 {
 public:
+	static const int days_per_year = 356;
 	static SCalculator* get() {
 		static SCalculator instance;
 		return &instance;
@@ -31,40 +32,28 @@ public:
 			return 0;
 
 		const auto employee = dynamic_cast<T*>(emp_ptr.get());
-		const auto rate = Storage::get()->getRate(employee->type()).get();
+		const auto rate = Storage::get()->getRate(employee->type());
 
 		// count all the previous years
-		const auto years = (dt - employee->date()).days() / 356;
+		const auto years = (dt - employee->date()).days() / days_per_year;
 
 		auto cur_salary = employee->base_rate;
 
 		const auto max_salary = cur_salary + cur_salary * rate->max_rate;
 		if (std::is_same<T, Employee>::value)
 		{
-			for (auto i = 0; i < years; ++i)
-			{
-				const auto indexed_salary = cur_salary + cur_salary * rate->year_rate;
-				cur_salary = indexed_salary > max_salary ? max_salary : indexed_salary;
-			}
+			cur_salary = calcCurSalary(years, max_salary, cur_salary, rate);
 		}
 		else if (std::is_same<T, Manager>::value)
 		{
 			auto staff_salary = calcSubLevel<Manager>(id);
-			for (auto i = 0; i < years; ++i)
-			{
-				const auto indexed_salary = cur_salary + cur_salary * rate->year_rate + staff_salary * rate->sub_rate;
-				cur_salary = indexed_salary > max_salary ? max_salary : indexed_salary;
-			}
+			cur_salary = calcCurSalary(years, max_salary, cur_salary, rate, staff_salary);
 		}
 		else if (std::is_same<T, Sales>::value)
 		{
 			double staff_salary = 0;
 			staff_salary = calcSubLevels<Sales>(id, staff_salary);
-			for (auto i = 0; i < years; ++i)
-			{
-				const auto indexed_salary = cur_salary + cur_salary * rate->year_rate + staff_salary * rate->sub_rate;
-				cur_salary = indexed_salary > max_salary ? max_salary : indexed_salary;
-			}
+			cur_salary = calcCurSalary(years, max_salary, cur_salary, rate, staff_salary);
 		}
 
 		return cur_salary;
@@ -115,6 +104,16 @@ private:
 				staff_salary = calcSubLevels<Sales>(sub_id, staff_salary);
 		}
 		return staff_salary;
+	}
+
+	double calcCurSalary(const int& years, const double& max_salary, double& cur_salary, const std::shared_ptr<rate_t>& rate, const double& staff_salary = 0)
+	{
+		for (auto i = 0; i < years; ++i)
+		{
+			const auto indexed_salary = cur_salary + cur_salary * rate->year_rate + staff_salary * rate->sub_rate;
+			cur_salary = indexed_salary > max_salary ? max_salary : indexed_salary;
+		}
+		return cur_salary;
 	}
 };
 
